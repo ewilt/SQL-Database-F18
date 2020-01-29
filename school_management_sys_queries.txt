@@ -1,0 +1,88 @@
+/*View 1*/
+
+/*Counts the number of enrolled students by department and calculates the average gpa for that department*/
+
+
+DROP VIEW IF EXISTS department_students;
+
+CREATE VIEW department_students AS
+
+SELECT department, COUNT(uid) AS enrolled_students, ROUND(AVG(cumulative_gpa), 2) AS average_gpa
+
+FROM students JOIN majors
+	
+	ON students.major = majors.major_name
+GROUP BY department;
+
+
+/*View 2*/
+
+/*Creates a student contact table*/
+
+DROP VIEW IF EXISTS student_contact;
+
+CREATE VIEW student_contact AS
+SELECT CONCAT(last_name, ', ', first_name) AS name, uid, phone_number, CONCAT(address_line_1, address_line_2, ', ', city, ', ', state, ' ', zipcode) AS address
+FROM general_directory JOIN user_contact_info
+	
+	ON general_directory.contact_id = user_contact_info.contact_id
+
+WHERE general_directory.student = 'Y';
+
+
+/*View 3*/
+
+/*Counts the number of students and staff from each state at the university*/
+
+DROP VIEW IF EXISTS number_by_state;
+
+CREATE VIEW number_by_state AS
+
+SELECT state, COUNT(uid) AS total_number
+
+FROM user_contact_info JOIN general_directory
+	
+	ON user_contact_info.contact_id = general_directory.contact_id
+
+GROUP BY state;
+
+
+
+/*View 4*/
+
+/*Returns students with a gpa higher than the average gpa*/
+
+DROP VIEW IF EXISTS gpa_above_average;
+
+CREATE VIEW gpa_above_average AS
+
+SELECT students.uid AS uid, CONCAT(last_name, ', ', first_name) AS full_name, cumulative_gpa AS cumulative_gpa
+    
+	FROM students JOIN general_directory ON students.uid = general_directory.uid
+    
+	WHERE cumulative_gpa > 
+		(SELECT AVG(cumulative_gpa)
+            
+		FROM students)
+    
+	ORDER BY full_name;
+
+
+
+/*View 5*/
+
+/*Returns who is allowed to park in lot 1*/
+
+DROP VIEW IF EXISTS lot_1_permission;
+
+CREATE VIEW lot_1_permission AS
+
+SELECT general_directory.uid, CONCAT(last_name, ', ', first_name) AS full_name, permit_id, license_plate
+
+FROM general_directory JOIN parking
+	
+	ON parking.uid = general_directory.uid
+
+WHERE parking.lot_permissions = '1'
+
+ORDER BY last_name;
